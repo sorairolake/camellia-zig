@@ -8,13 +8,22 @@
 //! [Camellia]: https://info.isl.ntt.co.jp/crypt/eng/camellia/
 //! [RFC 3713]: https://datatracker.ietf.org/doc/html/rfc3713
 
-const std = @import("std");
-const testing = std.testing;
+const camellia = @import("camellia.zig");
 
-export fn add(a: i32, b: i32) i32 {
-    return a + b;
+pub const Camellia128 = camellia.Camellia128;
+pub const Camellia192 = camellia.Camellia192;
+pub const Camellia256 = camellia.Camellia256;
+pub const DecryptContext = camellia.DecryptContext;
+pub const EncryptContext = camellia.EncryptContext;
+
+test {
+    _ = @import("consts.zig");
 }
 
-test "basic add functionality" {
-    try testing.expect(add(3, 7) == 10);
+test {
+    const std = @import("std");
+
+    const testing = std.testing;
+
+    testing.refAllDeclsRecursive(@This());
 }
