@@ -242,15 +242,15 @@ pub fn EncryptContext(comptime Camellia: type) type {
             d1 ^= self.key_schedule.kw[0];
             d2 ^= self.key_schedule.kw[1];
 
-            comptime var round = 0;
-            inline while (round < Camellia.rounds) : (round += 2) {
-                if ((round > 0) and (round % 6 == 0)) {
-                    d1 = fl(d1, self.key_schedule.ke[(round / 3) - 2]);
-                    d2 = flinv(d2, self.key_schedule.ke[(round / 3) - 1]);
+            comptime var i = 0;
+            inline while (i < Camellia.rounds) : (i += 2) {
+                if ((i > 0) and (i % 6 == 0)) {
+                    d1 = fl(d1, self.key_schedule.ke[(i / 3) - 2]);
+                    d2 = flinv(d2, self.key_schedule.ke[(i / 3) - 1]);
                 }
 
-                d2 ^= f(d1, self.key_schedule.k[round]);
-                d1 ^= f(d2, self.key_schedule.k[round + 1]);
+                d2 ^= f(d1, self.key_schedule.k[i]);
+                d1 ^= f(d2, self.key_schedule.k[i + 1]);
             }
 
             d2 ^= self.key_schedule.kw[2];
@@ -293,16 +293,15 @@ pub fn DecryptContext(comptime Camellia: type) type {
             d2 ^= self.key_schedule.kw[3];
             d1 ^= self.key_schedule.kw[2];
 
-            comptime var round = 0;
-            const last_index = Camellia.rounds - 1;
-            inline while (round < Camellia.rounds) : (round += 2) {
-                if ((round > 0) and (round % 6 == 0)) {
-                    d1 = fl(d1, self.key_schedule.ke[(last_index - round) / 3]);
-                    d2 = flinv(d2, self.key_schedule.ke[((last_index - round) / 3) - 1]);
+            comptime var i = Camellia.rounds;
+            inline while (i >= 2) : (i -= 2) {
+                if ((i < Camellia.rounds) and (i % 6 == 0)) {
+                    d1 = fl(d1, self.key_schedule.ke[(i / 3) - 1]);
+                    d2 = flinv(d2, self.key_schedule.ke[(i / 3) - 2]);
                 }
 
-                d2 ^= f(d1, self.key_schedule.k[last_index - round]);
-                d1 ^= f(d2, self.key_schedule.k[(last_index - round) - 1]);
+                d2 ^= f(d1, self.key_schedule.k[i - 1]);
+                d1 ^= f(d2, self.key_schedule.k[i - 2]);
             }
 
             d1 ^= self.key_schedule.kw[1];
@@ -425,6 +424,30 @@ test "MASK64" {
     const testing = std.testing;
 
     try testing.expectEqual(math.maxInt(u64), mask_64);
+}
+
+test "Camellia-128 constants" {
+    const testing = std.testing;
+
+    try testing.expectEqual(16, Camellia128.key_size);
+    try testing.expectEqual(16, Camellia128.block_size);
+    try testing.expectEqual(18, Camellia128.rounds);
+}
+
+test "Camellia-192 constants" {
+    const testing = std.testing;
+
+    try testing.expectEqual(24, Camellia192.key_size);
+    try testing.expectEqual(16, Camellia192.block_size);
+    try testing.expectEqual(24, Camellia192.rounds);
+}
+
+test "Camellia-256 constants" {
+    const testing = std.testing;
+
+    try testing.expectEqual(32, Camellia256.key_size);
+    try testing.expectEqual(16, Camellia256.block_size);
+    try testing.expectEqual(24, Camellia256.rounds);
 }
 
 test "Camellia-128 test vector from RFC 3713" {
