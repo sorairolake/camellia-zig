@@ -1,0 +1,22 @@
+// SPDX-FileCopyrightText: 2024 Shun Sakai
+//
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
+= Test Vectors from NTT
+
+The test vectors in this directory are derived from
+https://info.isl.ntt.co.jp/crypt/eng/camellia/dl/cryptrec/t_camellia.txt.
+
+.To generate JSON files
+[source,sh]
+----
+yq -o json camellia_128.yaml \
+    | npx underscore pretty --outfmt json \
+    > camellia_128.json
+yq -o json camellia_192.yaml \
+    | npx underscore pretty --outfmt json \
+    > camellia_192.json
+yq -o json camellia_256.yaml \
+    | npx underscore pretty --outfmt json \
+    > camellia_256.json
+----
