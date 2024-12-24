@@ -10,7 +10,13 @@ https://info.isl.ntt.co.jp/crypt/eng/camellia/dl/cryptrec/t_camellia.txt.
 .To generate JSON files
 [source,sh]
 ----
-yq -o json camellia_128.yaml > camellia_128.json
-yq -o json camellia_192.yaml > camellia_192.json
-yq -o json camellia_256.yaml > camellia_256.json
+yq -o json camellia_128.yaml \
+    | npx underscore pretty --outfmt json \
+    > camellia_128.json
+yq -o json camellia_192.yaml \
+    | npx underscore pretty --outfmt json \
+    > camellia_192.json
+yq -o json camellia_256.yaml \
+    | npx underscore pretty --outfmt json \
+    > camellia_256.json
 ----
