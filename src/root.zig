@@ -17,13 +17,9 @@ pub const DecryptContext = camellia.DecryptContext;
 pub const EncryptContext = camellia.EncryptContext;
 
 test {
+    const testing = @import("std").testing;
+
     _ = @import("consts.zig");
-}
-
-test {
-    const std = @import("std");
-
-    const testing = std.testing;
 
     testing.refAllDeclsRecursive(@This());
 }
