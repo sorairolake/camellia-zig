@@ -2,11 +2,9 @@
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! The `camellia` package is an implementation of the [Camellia] block cipher
-//! defined in [RFC 3713].
-//!
-//! [Camellia]: https://info.isl.ntt.co.jp/crypt/eng/camellia/
-//! [RFC 3713]: https://datatracker.ietf.org/doc/html/rfc3713
+//! The `camellia` package is an implementation of the
+//! [Camellia](https://info.isl.ntt.co.jp/crypt/eng/camellia/) block cipher
+//! defined in [RFC 3713](https://datatracker.ietf.org/doc/html/rfc3713).
 
 const camellia = @import("camellia.zig");
 

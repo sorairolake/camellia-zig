@@ -21,13 +21,13 @@ const mask_64 = 0xFFFF_FFFF_FFFF_FFFF;
 
 /// F-function defined in RFC 3713.
 ///
-/// This implementation is based on the Camellia implementation in the [Botan]
-/// cryptography library, which is licensed under the [BSD 2-Clause License].
-/// See [`camellia.cpp`] for details.
-///
-/// [Botan]: https://botan.randombit.net/
-/// [BSD 2-Clause License]: https://github.com/randombit/botan/blob/3.6.1/license.txt
-/// [`camellia.cpp`]: https://github.com/randombit/botan/blob/3.6.1/src/lib/block/camellia/camellia.cpp#L87-L109
+/// This implementation is based on the Camellia implementation in the
+/// [Botan](https://botan.randombit.net/) cryptography library, which is
+/// licensed under the
+/// [BSD 2-Clause License](https://github.com/randombit/botan/blob/3.6.1/license.txt).
+/// See
+/// [`camellia.cpp`](https://github.com/randombit/botan/blob/3.6.1/src/lib/block/camellia/camellia.cpp#L87-L109)
+/// for details.
 fn f(f_in: u64, ke: u64) u64 {
     const m1 = 0x0101_0100_0100_0001;
     const m2 = 0x0001_0101_0101_0000;
