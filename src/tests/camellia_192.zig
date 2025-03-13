@@ -4,7 +4,6 @@
 
 const std = @import("std");
 
-const json = std.json;
 const testing = std.testing;
 
 const Camellia192 = @import("../camellia.zig").Camellia192;
@@ -22,12 +21,9 @@ test "Camellia-192 test vector from NTT" {
         };
     };
 
-    const data = @embedFile("data/camellia_192.json");
+    const test_vectors: TestVectors = @import("data/camellia_192.zon");
 
-    const parsed = try json.parseFromSlice(TestVectors, testing.allocator, data, .{});
-    defer parsed.deinit();
-
-    for (parsed.value.test_vectors) |test_vector| {
+    for (test_vectors.test_vectors) |test_vector| {
         for (test_vector.test_cases) |test_case| {
             {
                 var context = Camellia192.initEncrypt(test_vector.key);
