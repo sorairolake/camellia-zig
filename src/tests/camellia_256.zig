@@ -2,13 +2,13 @@
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+const std = @import("std");
+
+const testing = std.testing;
+
+const Camellia256 = @import("../camellia.zig").Camellia256;
+
 test "Camellia-256 test vector from NTT" {
-    const std = @import("std");
-
-    const camellia = @import("../camellia.zig");
-
-    const testing = std.testing;
-
     const TestVectors = struct {
         test_vectors: [10]TestVector,
         const TestVector = struct {
@@ -21,22 +21,19 @@ test "Camellia-256 test vector from NTT" {
         };
     };
 
-    const json = @embedFile("data/camellia_256.json");
+    const test_vectors: TestVectors = @import("data/camellia_256.zon");
 
-    const parsed = try std.json.parseFromSlice(TestVectors, testing.allocator, json, .{});
-    defer parsed.deinit();
-
-    for (parsed.value.test_vectors) |test_vector| {
+    for (test_vectors.test_vectors) |test_vector| {
         for (test_vector.test_cases) |test_case| {
             {
-                var context = camellia.Camellia256.initEncrypt(test_vector.key);
+                var context = Camellia256.initEncrypt(test_vector.key);
                 var output: [16]u8 = undefined;
                 context.encrypt(&output, &test_case.plaintext);
                 try testing.expectEqualSlices(u8, &test_case.ciphertext, &output);
             }
 
             {
-                var context = camellia.Camellia256.initDecrypt(test_vector.key);
+                var context = Camellia256.initDecrypt(test_vector.key);
                 var output: [16]u8 = undefined;
                 context.decrypt(&output, &test_case.ciphertext);
                 try testing.expectEqualSlices(u8, &test_case.plaintext, &output);

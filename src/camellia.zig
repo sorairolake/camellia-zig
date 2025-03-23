@@ -8,7 +8,7 @@ const std = @import("std");
 
 const consts = @import("consts.zig");
 
-const builtin = std.builtin;
+const Endian = std.builtin.Endian;
 const debug = std.debug;
 const math = std.math;
 const mem = std.mem;
@@ -21,13 +21,13 @@ const mask_64 = 0xFFFF_FFFF_FFFF_FFFF;
 
 /// F-function defined in RFC 3713.
 ///
-/// This implementation is based on the Camellia implementation in the [Botan]
-/// cryptography library, which is licensed under the [BSD 2-Clause License].
-/// See [`camellia.cpp`] for details.
-///
-/// [Botan]: https://botan.randombit.net/
-/// [BSD 2-Clause License]: https://github.com/randombit/botan/blob/3.6.1/license.txt
-/// [`camellia.cpp`]: https://github.com/randombit/botan/blob/3.6.1/src/lib/block/camellia/camellia.cpp#L87-L109
+/// This implementation is based on the Camellia implementation in the
+/// [Botan](https://botan.randombit.net/) cryptography library, which is
+/// licensed under the
+/// [BSD 2-Clause License](https://github.com/randombit/botan/blob/3.6.1/license.txt).
+/// See
+/// [`camellia.cpp`](https://github.com/randombit/botan/blob/3.6.1/src/lib/block/camellia/camellia.cpp#L87-L109)
+/// for details.
 fn f(f_in: u64, ke: u64) u64 {
     const m1 = 0x0101_0100_0100_0001;
     const m2 = 0x0001_0101_0101_0000;
@@ -39,7 +39,7 @@ fn f(f_in: u64, ke: u64) u64 {
     const m8 = 0x0101_0100_0101_0100;
 
     var x: [8]u8 = undefined;
-    mem.writeInt(u64, &x, f_in ^ ke, builtin.Endian.big);
+    mem.writeInt(u64, &x, f_in ^ ke, Endian.big);
 
     const z1 = m1 * @as(u64, consts.sbox_1[x[0]]);
     const z2 = m2 * @as(u64, consts.sbox_2[x[1]]);
@@ -185,15 +185,15 @@ fn KeySchedule(comptime Camellia: type) type {
         }
 
         fn init128(key: [Camellia.key_size]u8) Self {
-            const kl = mem.readInt(u128, &key, builtin.Endian.big);
+            const kl = mem.readInt(u128, &key, Endian.big);
             const kr = 0;
             const ka = generate_ka(kl, kr);
             return generate_subkeys_26(kl, ka);
         }
 
         fn init192(key: [Camellia.key_size]u8) Self {
-            const kl = mem.readInt(u128, key[0..16], builtin.Endian.big);
-            const rightmost_64 = mem.readInt(u64, key[16..], builtin.Endian.big);
+            const kl = mem.readInt(u128, key[0..16], Endian.big);
+            const rightmost_64 = mem.readInt(u64, key[16..], Endian.big);
             const kr = (@as(u128, rightmost_64) << 64) | (~rightmost_64);
             const ka = generate_ka(kl, kr);
             const kb = generate_kb(ka, kr);
@@ -201,8 +201,8 @@ fn KeySchedule(comptime Camellia: type) type {
         }
 
         fn init256(key: [Camellia.key_size]u8) Self {
-            const kl = mem.readInt(u128, key[0..16], builtin.Endian.big);
-            const kr = mem.readInt(u128, key[16..], builtin.Endian.big);
+            const kl = mem.readInt(u128, key[0..16], Endian.big);
+            const kr = mem.readInt(u128, key[16..], Endian.big);
             const ka = generate_ka(kl, kr);
             const kb = generate_kb(ka, kr);
             return generate_subkeys_34(kl, kr, ka, kb);
@@ -236,8 +236,8 @@ pub fn EncryptContext(comptime Camellia: type) type {
             dst: *[Camellia.block_size]u8,
             src: *const [Camellia.block_size]u8,
         ) void {
-            var d1 = mem.readInt(u64, src[0..8], builtin.Endian.big);
-            var d2 = mem.readInt(u64, src[8..], builtin.Endian.big);
+            var d1 = mem.readInt(u64, src[0..8], Endian.big);
+            var d2 = mem.readInt(u64, src[8..], Endian.big);
 
             d1 ^= self.key_schedule.kw[0];
             d2 ^= self.key_schedule.kw[1];
@@ -256,7 +256,7 @@ pub fn EncryptContext(comptime Camellia: type) type {
             d2 ^= self.key_schedule.kw[2];
             d1 ^= self.key_schedule.kw[3];
 
-            mem.writeInt(u128, dst, (@as(u128, d2) << 64) | d1, builtin.Endian.big);
+            mem.writeInt(u128, dst, (@as(u128, d2) << 64) | d1, Endian.big);
         }
     };
 }
@@ -287,8 +287,8 @@ pub fn DecryptContext(comptime Camellia: type) type {
             dst: *[Camellia.block_size]u8,
             src: *const [Camellia.block_size]u8,
         ) void {
-            var d1 = mem.readInt(u64, src[0..8], builtin.Endian.big);
-            var d2 = mem.readInt(u64, src[8..], builtin.Endian.big);
+            var d1 = mem.readInt(u64, src[0..8], Endian.big);
+            var d2 = mem.readInt(u64, src[8..], Endian.big);
 
             d2 ^= self.key_schedule.kw[3];
             d1 ^= self.key_schedule.kw[2];
@@ -307,7 +307,7 @@ pub fn DecryptContext(comptime Camellia: type) type {
             d1 ^= self.key_schedule.kw[1];
             d2 ^= self.key_schedule.kw[0];
 
-            mem.writeInt(u128, dst, (@as(u128, d2) << 64) | d1, builtin.Endian.big);
+            mem.writeInt(u128, dst, (@as(u128, d2) << 64) | d1, Endian.big);
         }
     };
 }
