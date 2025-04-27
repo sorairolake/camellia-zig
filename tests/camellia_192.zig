@@ -2,11 +2,9 @@
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-const std = @import("std");
+const testing = @import("std").testing;
 
-const testing = std.testing;
-
-const Camellia192 = @import("../camellia.zig").Camellia192;
+const Camellia192 = @import("camellia").Camellia192;
 
 test "Camellia-192 test vector from NTT" {
     const TestVectors = struct {

@@ -408,12 +408,6 @@ pub const Camellia256 = struct {
     }
 };
 
-test {
-    _ = @import("tests/camellia_128.zig");
-    _ = @import("tests/camellia_192.zig");
-    _ = @import("tests/camellia_256.zig");
-}
-
 test "MASK32" {
     const testing = std.testing;
 
