@@ -187,25 +187,25 @@ fn KeySchedule(comptime Camellia: type) type {
         fn init128(key: [Camellia.key_size]u8) Self {
             const kl = mem.readInt(u128, &key, Endian.big);
             const kr = 0;
-            const ka = generate_ka(kl, kr);
-            return generate_subkeys_26(kl, ka);
+            const ka = Self.generate_ka(kl, kr);
+            return Self.generate_subkeys_26(kl, ka);
         }
 
         fn init192(key: [Camellia.key_size]u8) Self {
             const kl = mem.readInt(u128, key[0..16], Endian.big);
             const rightmost_64 = mem.readInt(u64, key[16..], Endian.big);
             const kr = (@as(u128, rightmost_64) << 64) | (~rightmost_64);
-            const ka = generate_ka(kl, kr);
-            const kb = generate_kb(ka, kr);
-            return generate_subkeys_34(kl, kr, ka, kb);
+            const ka = Self.generate_ka(kl, kr);
+            const kb = Self.generate_kb(ka, kr);
+            return Self.generate_subkeys_34(kl, kr, ka, kb);
         }
 
         fn init256(key: [Camellia.key_size]u8) Self {
             const kl = mem.readInt(u128, key[0..16], Endian.big);
             const kr = mem.readInt(u128, key[16..], Endian.big);
-            const ka = generate_ka(kl, kr);
-            const kb = generate_kb(ka, kr);
-            return generate_subkeys_34(kl, kr, ka, kb);
+            const ka = Self.generate_ka(kl, kr);
+            const kb = Self.generate_kb(ka, kr);
+            return Self.generate_subkeys_34(kl, kr, ka, kb);
         }
     };
 }
