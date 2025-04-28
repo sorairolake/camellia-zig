@@ -27,14 +27,14 @@ test "Camellia-256 test vector from NTT" {
                 var context = Camellia256.initEncrypt(test_vector.key);
                 var output: [16]u8 = undefined;
                 context.encrypt(&output, &test_case.plaintext);
-                try testing.expectEqualSlices(u8, &test_case.ciphertext, &output);
+                try testing.expectEqual(test_case.ciphertext, output);
             }
 
             {
                 var context = Camellia256.initDecrypt(test_vector.key);
                 var output: [16]u8 = undefined;
                 context.decrypt(&output, &test_case.ciphertext);
-                try testing.expectEqualSlices(u8, &test_case.plaintext, &output);
+                try testing.expectEqual(test_case.plaintext, output);
             }
         }
     }

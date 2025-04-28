@@ -465,14 +465,14 @@ test "Camellia-128 test vector from RFC 3713" {
         var context = Camellia128.initEncrypt(key);
         var output: [ciphertext.len]u8 = undefined;
         context.encrypt(&output, &plaintext);
-        try testing.expectEqualSlices(u8, &ciphertext, &output);
+        try testing.expectEqual(ciphertext, output);
     }
 
     {
         var context = Camellia128.initDecrypt(key);
         var output: [plaintext.len]u8 = undefined;
         context.decrypt(&output, &ciphertext);
-        try testing.expectEqualSlices(u8, &plaintext, &output);
+        try testing.expectEqual(plaintext, output);
     }
 }
 
@@ -497,14 +497,14 @@ test "Camellia-192 test vector from RFC 3713" {
         var context = Camellia192.initEncrypt(key);
         var output: [ciphertext.len]u8 = undefined;
         context.encrypt(&output, &plaintext);
-        try testing.expectEqualSlices(u8, &ciphertext, &output);
+        try testing.expectEqual(ciphertext, output);
     }
 
     {
         var context = Camellia192.initDecrypt(key);
         var output: [plaintext.len]u8 = undefined;
         context.decrypt(&output, &ciphertext);
-        try testing.expectEqualSlices(u8, &plaintext, &output);
+        try testing.expectEqual(plaintext, output);
     }
 }
 
@@ -530,13 +530,13 @@ test "Camellia-256 test vector from RFC 3713" {
         var context = Camellia256.initEncrypt(key);
         var output: [ciphertext.len]u8 = undefined;
         context.encrypt(&output, &plaintext);
-        try testing.expectEqualSlices(u8, &ciphertext, &output);
+        try testing.expectEqual(ciphertext, output);
     }
 
     {
         var context = Camellia256.initDecrypt(key);
         var output: [plaintext.len]u8 = undefined;
         context.decrypt(&output, &ciphertext);
-        try testing.expectEqualSlices(u8, &plaintext, &output);
+        try testing.expectEqual(plaintext, output);
     }
 }
