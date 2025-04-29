@@ -8,7 +8,7 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const lib_mod = b.addModule("camellia", .{ .root_source_file = b.path("src/root.zig") });
+    const camellia_mod = b.addModule("camellia", .{ .root_source_file = b.path("src/root.zig") });
 
     const unit_test_step = b.step("unit-test", "Run only the unit tests");
     const unit_tests = b.addTest(.{
@@ -25,7 +25,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    integration_tests.root_module.addImport("camellia", lib_mod);
+    integration_tests.root_module.addImport("camellia", camellia_mod);
     const run_integration_tests = b.addRunArtifact(integration_tests);
     integration_test_step.dependOn(&run_integration_tests.step);
 
