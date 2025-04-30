@@ -9,7 +9,6 @@ const std = @import("std");
 const consts = @import("consts.zig");
 
 const Endian = std.builtin.Endian;
-const debug = std.debug;
 const math = std.math;
 const mem = std.mem;
 const testing = std.testing;
@@ -80,7 +79,14 @@ fn flinv(flinv_in: u64, ke: u64) u64 {
 }
 
 fn KeySchedule(comptime Camellia: type) type {
-    debug.assert(Camellia.rounds == 18 or Camellia.rounds == 24);
+    switch (Camellia.key_size) {
+        16, 24, 32 => {},
+        else => @compileError("key size in bytes is invalid"),
+    }
+    switch (Camellia.rounds) {
+        18, 24 => {},
+        else => @compileError("the number of rounds is invalid"),
+    }
 
     return struct {
         kw: [4]u64,
@@ -213,7 +219,15 @@ fn KeySchedule(comptime Camellia: type) type {
 
 /// A context to perform encryption using the Camellia block cipher.
 pub fn EncryptContext(comptime Camellia: type) type {
-    debug.assert(Camellia.key_size == 16 or Camellia.key_size == 24 or Camellia.key_size == 32);
+    switch (Camellia.key_size) {
+        16, 24, 32 => {},
+        else => @compileError("key size in bytes is invalid"),
+    }
+    if (Camellia.block_size != 16) @compileError("block size in bytes is invalid");
+    switch (Camellia.rounds) {
+        18, 24 => {},
+        else => @compileError("the number of rounds is invalid"),
+    }
 
     return struct {
         key_schedule: KeySchedule(Camellia),
@@ -359,7 +373,15 @@ pub fn EncryptContext(comptime Camellia: type) type {
 
 /// A context to perform decryption using the Camellia block cipher.
 pub fn DecryptContext(comptime Camellia: type) type {
-    debug.assert(Camellia.key_size == 16 or Camellia.key_size == 24 or Camellia.key_size == 32);
+    switch (Camellia.key_size) {
+        16, 24, 32 => {},
+        else => @compileError("key size in bytes is invalid"),
+    }
+    if (Camellia.block_size != 16) @compileError("block size in bytes is invalid");
+    switch (Camellia.rounds) {
+        18, 24 => {},
+        else => @compileError("the number of rounds is invalid"),
+    }
 
     return struct {
         key_schedule: KeySchedule(Camellia),
