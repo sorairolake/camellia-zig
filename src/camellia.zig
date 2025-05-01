@@ -223,7 +223,8 @@ pub fn EncryptContext(comptime Camellia: type) type {
         16, 24, 32 => {},
         else => @compileError("key size in bytes is invalid"),
     }
-    if (Camellia.block_size != 16) @compileError("block size in bytes is invalid");
+    if (Camellia.block_size != 16)
+        @compileError("block size in bytes is invalid");
     switch (Camellia.rounds) {
         18, 24 => {},
         else => @compileError("the number of rounds is invalid"),
@@ -377,7 +378,8 @@ pub fn DecryptContext(comptime Camellia: type) type {
         16, 24, 32 => {},
         else => @compileError("key size in bytes is invalid"),
     }
-    if (Camellia.block_size != 16) @compileError("block size in bytes is invalid");
+    if (Camellia.block_size != 16)
+        @compileError("block size in bytes is invalid");
     switch (Camellia.rounds) {
         18, 24 => {},
         else => @compileError("the number of rounds is invalid"),

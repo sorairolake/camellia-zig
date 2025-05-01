@@ -1068,9 +1068,8 @@ test "SBOX2" {
     const math = std.math;
     const testing = std.testing;
 
-    inline for (sbox_1, 0..) |bits, i| {
+    inline for (sbox_1, 0..) |bits, i|
         try testing.expectEqual(sbox_2[i], math.rotl(u8, bits, 1));
-    }
 }
 
 test "SBOX3" {
@@ -1079,9 +1078,8 @@ test "SBOX3" {
     const math = std.math;
     const testing = std.testing;
 
-    inline for (sbox_1, 0..) |bits, i| {
+    inline for (sbox_1, 0..) |bits, i|
         try testing.expectEqual(sbox_3[i], math.rotl(u8, bits, 7));
-    }
 }
 
 test "SBOX4" {
@@ -1090,7 +1088,6 @@ test "SBOX4" {
     const math = std.math;
     const testing = std.testing;
 
-    inline for (sbox_4, 0..) |bits, i| {
+    inline for (sbox_4, 0..) |bits, i|
         try testing.expectEqual(bits, sbox_1[math.rotl(u8, i, 1)]);
-    }
 }
