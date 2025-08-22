@@ -4,8 +4,8 @@
 
 .{
     .name = .camellia,
-    .version = "0.1.1",
+    .version = "0.1.2",
     .fingerprint = 0x4d882006ecdeb696,
-    .minimum_zig_version = "0.14.0",
+    .minimum_zig_version = "0.15.1",
     .paths = .{ "build.zig", "build.zig.zon", "LICENSES", "README.md", "src" },
 }

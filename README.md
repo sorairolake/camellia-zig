@@ -1,7 +1,7 @@
 <!--
 SPDX-FileCopyrightText: 2024 Shun Sakai
 
-SPDX-License-Identifier: Apache-2.0 OR MIT
+SPDX-License-Identifier: CC-BY-4.0
 -->
 
 # camellia-zig
@@ -28,25 +28,11 @@ exe.root_module.addImport("camellia", camellia.module("camellia"));
 
 ### Documentation
 
-To build the documentation:
-
-```sh
-zig build doc
-```
-
-The result is generated in `zig-out/doc/camellia`.
-
-If you want to preview this, run a HTTP server locally. For example:
-
-```sh
-python -m http.server -d zig-out/doc/camellia
-```
-
-Then open `http://localhost:8000/` in your browser.
+See the [documentation][docs-url] for more details.
 
 ## Zig version
 
-This library is compatible with Zig version 0.14.0.
+This library is compatible with Zig version 0.15.1.
 
 ## Source code
 
@@ -76,6 +62,7 @@ licensing information.
 [ci-url]: https://github.com/sorairolake/camellia-zig/actions?query=branch%3Adevelop+workflow%3ACI++
 [Camellia]: https://info.isl.ntt.co.jp/crypt/eng/camellia/
 [Zig]: https://ziglang.org/
+[docs-url]: https://sorairolake.github.io/camellia-zig/
 [CHANGELOG.adoc]: CHANGELOG.adoc
 [CONTRIBUTING.adoc]: CONTRIBUTING.adoc
 [AUTHORS.adoc]: AUTHORS.adoc

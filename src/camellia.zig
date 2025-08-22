@@ -9,9 +9,9 @@ const std = @import("std");
 const consts = @import("consts.zig");
 
 const Endian = std.builtin.Endian;
-const debug = std.debug;
 const math = std.math;
 const mem = std.mem;
+const testing = std.testing;
 
 /// MASK32 constant value defined in RFC 3713.
 const mask_32 = 0xFFFF_FFFF;
@@ -79,7 +79,14 @@ fn flinv(flinv_in: u64, ke: u64) u64 {
 }
 
 fn KeySchedule(comptime Camellia: type) type {
-    debug.assert(Camellia.rounds == 18 or Camellia.rounds == 24);
+    switch (Camellia.key_size) {
+        16, 24, 32 => {},
+        else => @compileError("key size in bytes is invalid"),
+    }
+    switch (Camellia.rounds) {
+        18, 24 => {},
+        else => @compileError("the number of rounds is invalid"),
+    }
 
     return struct {
         kw: [4]u64,
@@ -187,32 +194,41 @@ fn KeySchedule(comptime Camellia: type) type {
         fn init128(key: [Camellia.key_size]u8) Self {
             const kl = mem.readInt(u128, &key, Endian.big);
             const kr = 0;
-            const ka = generate_ka(kl, kr);
-            return generate_subkeys_26(kl, ka);
+            const ka = Self.generate_ka(kl, kr);
+            return Self.generate_subkeys_26(kl, ka);
         }
 
         fn init192(key: [Camellia.key_size]u8) Self {
             const kl = mem.readInt(u128, key[0..16], Endian.big);
             const rightmost_64 = mem.readInt(u64, key[16..], Endian.big);
             const kr = (@as(u128, rightmost_64) << 64) | (~rightmost_64);
-            const ka = generate_ka(kl, kr);
-            const kb = generate_kb(ka, kr);
-            return generate_subkeys_34(kl, kr, ka, kb);
+            const ka = Self.generate_ka(kl, kr);
+            const kb = Self.generate_kb(ka, kr);
+            return Self.generate_subkeys_34(kl, kr, ka, kb);
         }
 
         fn init256(key: [Camellia.key_size]u8) Self {
             const kl = mem.readInt(u128, key[0..16], Endian.big);
             const kr = mem.readInt(u128, key[16..], Endian.big);
-            const ka = generate_ka(kl, kr);
-            const kb = generate_kb(ka, kr);
-            return generate_subkeys_34(kl, kr, ka, kb);
+            const ka = Self.generate_ka(kl, kr);
+            const kb = Self.generate_kb(ka, kr);
+            return Self.generate_subkeys_34(kl, kr, ka, kb);
         }
     };
 }
 
 /// A context to perform encryption using the Camellia block cipher.
 pub fn EncryptContext(comptime Camellia: type) type {
-    debug.assert(Camellia.key_size == 16 or Camellia.key_size == 24 or Camellia.key_size == 32);
+    switch (Camellia.key_size) {
+        16, 24, 32 => {},
+        else => @compileError("key size in bytes is invalid"),
+    }
+    if (Camellia.block_size != 16)
+        @compileError("block size in bytes is invalid");
+    switch (Camellia.rounds) {
+        18, 24 => {},
+        else => @compileError("the number of rounds is invalid"),
+    }
 
     return struct {
         key_schedule: KeySchedule(Camellia),
@@ -228,6 +244,11 @@ pub fn EncryptContext(comptime Camellia: type) type {
                 else => unreachable,
             };
             return .{ .key_schedule = key_schedule };
+        }
+
+        test init {
+            _ = EncryptContext(Camellia128).init([_]u8{0x00} ** Camellia128.key_size);
+            _ = EncryptContext(Camellia256).init([_]u8{0x00} ** Camellia256.key_size);
         }
 
         /// Encrypts a single block.
@@ -258,12 +279,111 @@ pub fn EncryptContext(comptime Camellia: type) type {
 
             mem.writeInt(u128, dst, (@as(u128, d2) << 64) | d1, Endian.big);
         }
+
+        test encrypt {
+            {
+                const plaintext = [Camellia128.block_size]u8{
+                    0x80,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                };
+                const expected = [Camellia128.block_size]u8{
+                    0x07,
+                    0x92,
+                    0x3A,
+                    0x39,
+                    0xEB,
+                    0x0A,
+                    0x81,
+                    0x7D,
+                    0x1C,
+                    0x4D,
+                    0x87,
+                    0xBD,
+                    0xB8,
+                    0x2D,
+                    0x1F,
+                    0x1C,
+                };
+
+                var context = Camellia128.initEncrypt([_]u8{0x00} ** Camellia128.key_size);
+                var output: [expected.len]u8 = undefined;
+                context.encrypt(&output, &plaintext);
+                try testing.expectEqual(expected, output);
+            }
+
+            {
+                const plaintext = [Camellia256.block_size]u8{
+                    0x80,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                };
+                const expected = [Camellia256.block_size]u8{
+                    0xB0,
+                    0xC6,
+                    0xB8,
+                    0x8A,
+                    0xEA,
+                    0x51,
+                    0x8A,
+                    0xB0,
+                    0x9E,
+                    0x84,
+                    0x72,
+                    0x48,
+                    0xE9,
+                    0x1B,
+                    0x1B,
+                    0x9D,
+                };
+
+                var context = Camellia256.initEncrypt([_]u8{0x00} ** Camellia256.key_size);
+                var output: [expected.len]u8 = undefined;
+                context.encrypt(&output, &plaintext);
+                try testing.expectEqual(expected, output);
+            }
+        }
     };
 }
 
 /// A context to perform decryption using the Camellia block cipher.
 pub fn DecryptContext(comptime Camellia: type) type {
-    debug.assert(Camellia.key_size == 16 or Camellia.key_size == 24 or Camellia.key_size == 32);
+    switch (Camellia.key_size) {
+        16, 24, 32 => {},
+        else => @compileError("key size in bytes is invalid"),
+    }
+    if (Camellia.block_size != 16)
+        @compileError("block size in bytes is invalid");
+    switch (Camellia.rounds) {
+        18, 24 => {},
+        else => @compileError("the number of rounds is invalid"),
+    }
 
     return struct {
         key_schedule: KeySchedule(Camellia),
@@ -279,6 +399,11 @@ pub fn DecryptContext(comptime Camellia: type) type {
                 else => unreachable,
             };
             return .{ .key_schedule = key_schedule };
+        }
+
+        test init {
+            _ = DecryptContext(Camellia128).init([_]u8{0x00} ** Camellia128.key_size);
+            _ = DecryptContext(Camellia256).init([_]u8{0x00} ** Camellia256.key_size);
         }
 
         /// Decrypts a single block.
@@ -309,6 +434,96 @@ pub fn DecryptContext(comptime Camellia: type) type {
 
             mem.writeInt(u128, dst, (@as(u128, d2) << 64) | d1, Endian.big);
         }
+
+        test decrypt {
+            {
+                const ciphertext = [Camellia128.block_size]u8{
+                    0x07,
+                    0x92,
+                    0x3A,
+                    0x39,
+                    0xEB,
+                    0x0A,
+                    0x81,
+                    0x7D,
+                    0x1C,
+                    0x4D,
+                    0x87,
+                    0xBD,
+                    0xB8,
+                    0x2D,
+                    0x1F,
+                    0x1C,
+                };
+                const expected = [Camellia128.block_size]u8{
+                    0x80,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                };
+
+                var context = Camellia128.initDecrypt([_]u8{0x00} ** Camellia128.key_size);
+                var output: [expected.len]u8 = undefined;
+                context.decrypt(&output, &ciphertext);
+                try testing.expectEqual(expected, output);
+            }
+
+            {
+                const ciphertext = [Camellia256.block_size]u8{
+                    0xB0,
+                    0xC6,
+                    0xB8,
+                    0x8A,
+                    0xEA,
+                    0x51,
+                    0x8A,
+                    0xB0,
+                    0x9E,
+                    0x84,
+                    0x72,
+                    0x48,
+                    0xE9,
+                    0x1B,
+                    0x1B,
+                    0x9D,
+                };
+                const expected = [Camellia256.block_size]u8{
+                    0x80,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                };
+
+                var context = Camellia256.initDecrypt([_]u8{0x00} ** Camellia256.key_size);
+                var output: [expected.len]u8 = undefined;
+                context.decrypt(&output, &ciphertext);
+                try testing.expectEqual(expected, output);
+            }
+        }
     };
 }
 
@@ -331,7 +546,7 @@ pub const Camellia128 = struct {
     }
 
     test initEncrypt {
-        _ = Camellia128.initEncrypt([_]u8{0} ** Camellia128.key_size);
+        _ = Camellia128.initEncrypt([_]u8{0x00} ** Camellia128.key_size);
     }
 
     /// Creates a new context for decryption.
@@ -340,7 +555,7 @@ pub const Camellia128 = struct {
     }
 
     test initDecrypt {
-        _ = Camellia128.initDecrypt([_]u8{0} ** Camellia128.key_size);
+        _ = Camellia128.initDecrypt([_]u8{0x00} ** Camellia128.key_size);
     }
 };
 
@@ -363,7 +578,7 @@ pub const Camellia192 = struct {
     }
 
     test initEncrypt {
-        _ = Camellia192.initEncrypt([_]u8{0} ** Camellia192.key_size);
+        _ = Camellia192.initEncrypt([_]u8{0x00} ** Camellia192.key_size);
     }
 
     /// Creates a new context for decryption.
@@ -372,7 +587,7 @@ pub const Camellia192 = struct {
     }
 
     test initDecrypt {
-        _ = Camellia192.initDecrypt([_]u8{0} ** Camellia192.key_size);
+        _ = Camellia192.initDecrypt([_]u8{0x00} ** Camellia192.key_size);
     }
 };
 
@@ -395,7 +610,7 @@ pub const Camellia256 = struct {
     }
 
     test initEncrypt {
-        _ = Camellia256.initEncrypt([_]u8{0} ** Camellia256.key_size);
+        _ = Camellia256.initEncrypt([_]u8{0x00} ** Camellia256.key_size);
     }
 
     /// Creates a new context for decryption.
@@ -404,66 +619,90 @@ pub const Camellia256 = struct {
     }
 
     test initDecrypt {
-        _ = Camellia256.initDecrypt([_]u8{0} ** Camellia256.key_size);
+        _ = Camellia256.initDecrypt([_]u8{0x00} ** Camellia256.key_size);
     }
 };
 
-test {
-    _ = @import("tests/camellia_128.zig");
-    _ = @import("tests/camellia_192.zig");
-    _ = @import("tests/camellia_256.zig");
-}
-
 test "MASK32" {
-    const testing = std.testing;
-
     try testing.expectEqual(math.maxInt(u32), mask_32);
 }
 
 test "MASK64" {
-    const testing = std.testing;
-
     try testing.expectEqual(math.maxInt(u64), mask_64);
 }
 
 test "Camellia-128 constants" {
-    const testing = std.testing;
-
     try testing.expectEqual(16, Camellia128.key_size);
     try testing.expectEqual(16, Camellia128.block_size);
     try testing.expectEqual(18, Camellia128.rounds);
 }
 
 test "Camellia-192 constants" {
-    const testing = std.testing;
-
     try testing.expectEqual(24, Camellia192.key_size);
     try testing.expectEqual(16, Camellia192.block_size);
     try testing.expectEqual(24, Camellia192.rounds);
 }
 
 test "Camellia-256 constants" {
-    const testing = std.testing;
-
     try testing.expectEqual(32, Camellia256.key_size);
     try testing.expectEqual(16, Camellia256.block_size);
     try testing.expectEqual(24, Camellia256.rounds);
 }
 
 test "Camellia-128 test vector from RFC 3713" {
-    const testing = std.testing;
-
     // Test vector from RFC 3713, Appendix A.
     const key = [16]u8{
-        0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32,
+        0x01,
+        0x23,
+        0x45,
+        0x67,
+        0x89,
+        0xAB,
+        0xCD,
+        0xEF,
+        0xFE,
+        0xDC,
+        0xBA,
+        0x98,
+        0x76,
+        0x54,
+        0x32,
         0x10,
     };
     const plaintext = [16]u8{
-        0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32,
+        0x01,
+        0x23,
+        0x45,
+        0x67,
+        0x89,
+        0xAB,
+        0xCD,
+        0xEF,
+        0xFE,
+        0xDC,
+        0xBA,
+        0x98,
+        0x76,
+        0x54,
+        0x32,
         0x10,
     };
     const ciphertext = [16]u8{
-        0x67, 0x67, 0x31, 0x38, 0x54, 0x96, 0x69, 0x73, 0x08, 0x57, 0x06, 0x56, 0x48, 0xEA, 0xBE,
+        0x67,
+        0x67,
+        0x31,
+        0x38,
+        0x54,
+        0x96,
+        0x69,
+        0x73,
+        0x08,
+        0x57,
+        0x06,
+        0x56,
+        0x48,
+        0xEA,
+        0xBE,
         0x43,
     };
 
@@ -471,31 +710,79 @@ test "Camellia-128 test vector from RFC 3713" {
         var context = Camellia128.initEncrypt(key);
         var output: [ciphertext.len]u8 = undefined;
         context.encrypt(&output, &plaintext);
-        try testing.expectEqualSlices(u8, &ciphertext, &output);
+        try testing.expectEqual(ciphertext, output);
     }
 
     {
         var context = Camellia128.initDecrypt(key);
         var output: [plaintext.len]u8 = undefined;
         context.decrypt(&output, &ciphertext);
-        try testing.expectEqualSlices(u8, &plaintext, &output);
+        try testing.expectEqual(plaintext, output);
     }
 }
 
 test "Camellia-192 test vector from RFC 3713" {
-    const testing = std.testing;
-
     // Test vector from RFC 3713, Appendix A.
     const key = [24]u8{
-        0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32,
-        0x10, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+        0x01,
+        0x23,
+        0x45,
+        0x67,
+        0x89,
+        0xAB,
+        0xCD,
+        0xEF,
+        0xFE,
+        0xDC,
+        0xBA,
+        0x98,
+        0x76,
+        0x54,
+        0x32,
+        0x10,
+        0x00,
+        0x11,
+        0x22,
+        0x33,
+        0x44,
+        0x55,
+        0x66,
+        0x77,
     };
     const plaintext = [16]u8{
-        0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32,
+        0x01,
+        0x23,
+        0x45,
+        0x67,
+        0x89,
+        0xAB,
+        0xCD,
+        0xEF,
+        0xFE,
+        0xDC,
+        0xBA,
+        0x98,
+        0x76,
+        0x54,
+        0x32,
         0x10,
     };
     const ciphertext = [16]u8{
-        0xB4, 0x99, 0x34, 0x01, 0xB3, 0xE9, 0x96, 0xF8, 0x4E, 0xE5, 0xCE, 0xE7, 0xD7, 0x9B, 0x09,
+        0xB4,
+        0x99,
+        0x34,
+        0x01,
+        0xB3,
+        0xE9,
+        0x96,
+        0xF8,
+        0x4E,
+        0xE5,
+        0xCE,
+        0xE7,
+        0xD7,
+        0x9B,
+        0x09,
         0xB9,
     };
 
@@ -503,32 +790,87 @@ test "Camellia-192 test vector from RFC 3713" {
         var context = Camellia192.initEncrypt(key);
         var output: [ciphertext.len]u8 = undefined;
         context.encrypt(&output, &plaintext);
-        try testing.expectEqualSlices(u8, &ciphertext, &output);
+        try testing.expectEqual(ciphertext, output);
     }
 
     {
         var context = Camellia192.initDecrypt(key);
         var output: [plaintext.len]u8 = undefined;
         context.decrypt(&output, &ciphertext);
-        try testing.expectEqualSlices(u8, &plaintext, &output);
+        try testing.expectEqual(plaintext, output);
     }
 }
 
 test "Camellia-256 test vector from RFC 3713" {
-    const testing = std.testing;
-
     // Test vector from RFC 3713, Appendix A.
     const key = [32]u8{
-        0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32,
-        0x10, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD,
-        0xEE, 0xFF,
+        0x01,
+        0x23,
+        0x45,
+        0x67,
+        0x89,
+        0xAB,
+        0xCD,
+        0xEF,
+        0xFE,
+        0xDC,
+        0xBA,
+        0x98,
+        0x76,
+        0x54,
+        0x32,
+        0x10,
+        0x00,
+        0x11,
+        0x22,
+        0x33,
+        0x44,
+        0x55,
+        0x66,
+        0x77,
+        0x88,
+        0x99,
+        0xAA,
+        0xBB,
+        0xCC,
+        0xDD,
+        0xEE,
+        0xFF,
     };
     const plaintext = [16]u8{
-        0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32,
+        0x01,
+        0x23,
+        0x45,
+        0x67,
+        0x89,
+        0xAB,
+        0xCD,
+        0xEF,
+        0xFE,
+        0xDC,
+        0xBA,
+        0x98,
+        0x76,
+        0x54,
+        0x32,
         0x10,
     };
     const ciphertext = [16]u8{
-        0x9A, 0xCC, 0x23, 0x7D, 0xFF, 0x16, 0xD7, 0x6C, 0x20, 0xEF, 0x7C, 0x91, 0x9E, 0x3A, 0x75,
+        0x9A,
+        0xCC,
+        0x23,
+        0x7D,
+        0xFF,
+        0x16,
+        0xD7,
+        0x6C,
+        0x20,
+        0xEF,
+        0x7C,
+        0x91,
+        0x9E,
+        0x3A,
+        0x75,
         0x09,
     };
 
@@ -536,13 +878,13 @@ test "Camellia-256 test vector from RFC 3713" {
         var context = Camellia256.initEncrypt(key);
         var output: [ciphertext.len]u8 = undefined;
         context.encrypt(&output, &plaintext);
-        try testing.expectEqualSlices(u8, &ciphertext, &output);
+        try testing.expectEqual(ciphertext, output);
     }
 
     {
         var context = Camellia256.initDecrypt(key);
         var output: [plaintext.len]u8 = undefined;
         context.decrypt(&output, &ciphertext);
-        try testing.expectEqualSlices(u8, &plaintext, &output);
+        try testing.expectEqual(plaintext, output);
     }
 }

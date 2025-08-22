@@ -2,11 +2,9 @@
 //
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-const std = @import("std");
+const testing = @import("std").testing;
 
-const testing = std.testing;
-
-const Camellia192 = @import("../camellia.zig").Camellia192;
+const Camellia192 = @import("camellia").Camellia192;
 
 test "Camellia-192 test vector from NTT" {
     const TestVectors = struct {
@@ -29,14 +27,14 @@ test "Camellia-192 test vector from NTT" {
                 var context = Camellia192.initEncrypt(test_vector.key);
                 var output: [16]u8 = undefined;
                 context.encrypt(&output, &test_case.plaintext);
-                try testing.expectEqualSlices(u8, &test_case.ciphertext, &output);
+                try testing.expectEqual(test_case.ciphertext, output);
             }
 
             {
                 var context = Camellia192.initDecrypt(test_vector.key);
                 var output: [16]u8 = undefined;
                 context.decrypt(&output, &test_case.ciphertext);
-                try testing.expectEqualSlices(u8, &test_case.plaintext, &output);
+                try testing.expectEqual(test_case.plaintext, output);
             }
         }
     }
