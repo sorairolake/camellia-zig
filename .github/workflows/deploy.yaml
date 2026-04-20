@@ -37,7 +37,7 @@ jobs:
         with:
           args: -o zig-out/doc/camellia/ -r zig-out/doc/camellia/
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: zig-out/doc/camellia
 
