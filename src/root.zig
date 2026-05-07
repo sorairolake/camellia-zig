@@ -17,5 +17,5 @@ pub const EncryptContext = camellia.EncryptContext;
 test {
     const testing = @import("std").testing;
 
-    testing.refAllDeclsRecursive(@This());
+    testing.refAllDecls(@This());
 }

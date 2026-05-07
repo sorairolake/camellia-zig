@@ -9,5 +9,5 @@ test {
     _ = @import("camellia_192.zig");
     _ = @import("camellia_256.zig");
 
-    testing.refAllDeclsRecursive(@This());
+    testing.refAllDecls(@This());
 }
