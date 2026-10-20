@@ -247,8 +247,8 @@ pub fn EncryptContext(comptime Camellia: type) type {
         }
 
         test init {
-            _ = EncryptContext(Camellia128).init([_]u8{0x00} ** Camellia128.key_size);
-            _ = EncryptContext(Camellia256).init([_]u8{0x00} ** Camellia256.key_size);
+            _ = EncryptContext(Camellia128).init(@splat(0x00));
+            _ = EncryptContext(Camellia256).init(@splat(0x00));
         }
 
         /// Encrypts a single block.
@@ -291,7 +291,7 @@ pub fn EncryptContext(comptime Camellia: type) type {
                     0x2D, 0x1F, 0x1C,
                 };
 
-                var context = Camellia128.initEncrypt([_]u8{0x00} ** Camellia128.key_size);
+                var context = Camellia128.initEncrypt(@splat(0x00));
                 var output: [expected.len]u8 = undefined;
                 context.encrypt(&output, &plaintext);
                 try testing.expectEqual(expected, output);
@@ -307,7 +307,7 @@ pub fn EncryptContext(comptime Camellia: type) type {
                     0x1B, 0x1B, 0x9D,
                 };
 
-                var context = Camellia256.initEncrypt([_]u8{0x00} ** Camellia256.key_size);
+                var context = Camellia256.initEncrypt(@splat(0x00));
                 var output: [expected.len]u8 = undefined;
                 context.encrypt(&output, &plaintext);
                 try testing.expectEqual(expected, output);
@@ -346,8 +346,8 @@ pub fn DecryptContext(comptime Camellia: type) type {
         }
 
         test init {
-            _ = DecryptContext(Camellia128).init([_]u8{0x00} ** Camellia128.key_size);
-            _ = DecryptContext(Camellia256).init([_]u8{0x00} ** Camellia256.key_size);
+            _ = DecryptContext(Camellia128).init(@splat(0x00));
+            _ = DecryptContext(Camellia256).init(@splat(0x00));
         }
 
         /// Decrypts a single block.
@@ -390,7 +390,7 @@ pub fn DecryptContext(comptime Camellia: type) type {
                     0x00, 0x00, 0x00,
                 };
 
-                var context = Camellia128.initDecrypt([_]u8{0x00} ** Camellia128.key_size);
+                var context = Camellia128.initDecrypt(@splat(0x00));
                 var output: [expected.len]u8 = undefined;
                 context.decrypt(&output, &ciphertext);
                 try testing.expectEqual(expected, output);
@@ -406,7 +406,7 @@ pub fn DecryptContext(comptime Camellia: type) type {
                     0x00, 0x00, 0x00,
                 };
 
-                var context = Camellia256.initDecrypt([_]u8{0x00} ** Camellia256.key_size);
+                var context = Camellia256.initDecrypt(@splat(0x00));
                 var output: [expected.len]u8 = undefined;
                 context.decrypt(&output, &ciphertext);
                 try testing.expectEqual(expected, output);
@@ -434,7 +434,7 @@ pub const Camellia128 = struct {
     }
 
     test initEncrypt {
-        _ = Camellia128.initEncrypt([_]u8{0x00} ** Camellia128.key_size);
+        _ = Camellia128.initEncrypt(@splat(0x00));
     }
 
     /// Creates a new context for decryption.
@@ -443,7 +443,7 @@ pub const Camellia128 = struct {
     }
 
     test initDecrypt {
-        _ = Camellia128.initDecrypt([_]u8{0x00} ** Camellia128.key_size);
+        _ = Camellia128.initDecrypt(@splat(0x00));
     }
 };
 
@@ -466,7 +466,7 @@ pub const Camellia192 = struct {
     }
 
     test initEncrypt {
-        _ = Camellia192.initEncrypt([_]u8{0x00} ** Camellia192.key_size);
+        _ = Camellia192.initEncrypt(@splat(0x00));
     }
 
     /// Creates a new context for decryption.
@@ -475,7 +475,7 @@ pub const Camellia192 = struct {
     }
 
     test initDecrypt {
-        _ = Camellia192.initDecrypt([_]u8{0x00} ** Camellia192.key_size);
+        _ = Camellia192.initDecrypt(@splat(0x00));
     }
 };
 
@@ -498,7 +498,7 @@ pub const Camellia256 = struct {
     }
 
     test initEncrypt {
-        _ = Camellia256.initEncrypt([_]u8{0x00} ** Camellia256.key_size);
+        _ = Camellia256.initEncrypt(@splat(0x00));
     }
 
     /// Creates a new context for decryption.
@@ -507,7 +507,7 @@ pub const Camellia256 = struct {
     }
 
     test initDecrypt {
-        _ = Camellia256.initDecrypt([_]u8{0x00} ** Camellia256.key_size);
+        _ = Camellia256.initDecrypt(@splat(0x00));
     }
 };
 
